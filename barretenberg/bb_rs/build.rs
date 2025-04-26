@@ -232,6 +232,7 @@ fn main() {
         .allowlist_function("acir_serialize_verification_key_into_fields")
         .allowlist_function("acir_prove_ultra_honk")
         .allowlist_function("acir_prove_ultra_keccak_honk")
+<<<<<<< HEAD
         .allowlist_function("acir_prove_ultra_keccak_zk_honk")
         .allowlist_function("acir_prove_aztec_client")
         // TODO: enable the Starknet flavors once we enable the appropriate flag
@@ -244,6 +245,10 @@ fn main() {
         .allowlist_function("acir_verify_aztec_client")
         //.allowlist_function("acir_verify_ultra_starknet_honk")
         //.allowlist_function("acir_verify_ultra_starknet_zk_honk")
+=======
+        .allowlist_function("acir_verify_ultra_honk")
+        .allowlist_function("acir_verify_ultra_keccak_honk")
+>>>>>>> a90b935abc (feat: add keccak prove/verify variants to bb_rs)
         .allowlist_function("acir_write_vk_ultra_honk")
         .allowlist_function("acir_write_vk_ultra_keccak_honk")
         .allowlist_function("acir_write_vk_ultra_keccak_zk_honk")
