@@ -4,7 +4,43 @@
 #include <cstring>
 #include <functional>
 #include <random>
-#include <sys/random.h>
+
+#if defined(__APPLE__)
+  // We are on an Apple platform (macOS or iOS)
+  #include <TargetConditionals.h>
+
+  #if TARGET_OS_IPHONE
+    #include <stdlib.h> // For arc4random_buf()
+    #include <errno.h>  // For error codes EIO, EFAULT
+    #include <stddef.h> // For size_t
+
+    inline int getentropy(void *buf, size_t buflen) {
+        // getentropy standard requires failure if buflen > 256
+        if (buflen > 256) {
+            errno = EIO;
+            return -1;
+        }
+
+        if (buf == NULL) {
+           if (buflen == 0) return 0;
+           errno = EFAULT;
+           return -1;
+        }
+
+        if (buflen == 0) {
+            return 0;
+        }
+
+        arc4random_buf(buf, buflen);
+
+        return 0;
+    }
+  #else // MacOS has sys/random.h
+    #include <sys/random.h>
+  #endif
+#else
+  #include <sys/random.h>
+#endif
 
 namespace bb::numeric {
 
