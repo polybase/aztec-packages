@@ -10,18 +10,18 @@ use std::process::Command;
 /// rather than trying to patch for it in the C++ code.
 fn fix_duplicate_bindings(bindings_file: &PathBuf) {
     println!("cargo:warning=Fixing duplicate type definitions in bindings...");
-    
+
     let scripts_dir = PathBuf::from("scripts");
     let python_script = scripts_dir.join("fix_bindings.py");
     let shell_script = scripts_dir.join("fix_bindings.sh");
-    
+
     // Try Python script first
     if python_script.exists() {
         let output = Command::new("python3")
             .arg(&python_script)
             .arg(bindings_file)
             .output();
-            
+
         match output {
             Ok(result) => {
                 if result.status.success() {
@@ -36,21 +36,24 @@ fn fix_duplicate_bindings(bindings_file: &PathBuf) {
             }
         }
     }
-    
+
     // Fallback to shell script
     if shell_script.exists() {
         let output = Command::new("bash")
             .arg(&shell_script)
             .arg(bindings_file)
             .output();
-            
+
         match output {
             Ok(result) => {
                 if result.status.success() {
                     println!("cargo:warning=Successfully fixed bindings with shell script");
                 } else {
                     println!("cargo:warning=Shell script failed");
-                    eprintln!("Shell script stderr: {}", String::from_utf8_lossy(&result.stderr));
+                    eprintln!(
+                        "Shell script stderr: {}",
+                        String::from_utf8_lossy(&result.stderr)
+                    );
                 }
             }
             Err(e) => {
@@ -86,34 +89,51 @@ fn main() {
     }
     // Android
     else if target_os == "android" {
+        // Detect Android ABI from TARGET triple
+        let target = env::var("TARGET").expect("Android TARGET not set");
+        let target_abi = match target.as_str() {
+            "aarch64-linux-android" => "arm64-v8a",
+            "armv7-linux-androideabi" => "armeabi-v7a",
+            "i686-linux-android" => "x86",
+            "x86_64-linux-android" => "x86_64",
+            _ => panic!("Unsupported Android target: {}", target),
+        };
+
         let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
         let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
 
         dst = Config::new("../cpp")
-        .generator("Ninja")
-        .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-        .configure_arg("-DANDROID_ABI=arm64-v8a")
-        .configure_arg("-DANDROID_PLATFORM=android-33")
-        .configure_arg(&format!("--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake", android_home, ndk_version))
-        .configure_arg("-DTRACY_ENABLE=OFF")
-        .build_target("bb")
-        .build();
+            .generator("Ninja")
+            .configure_arg("-DCMAKE_BUILD_TYPE=Release")
+            .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
+            .configure_arg(&format!("-DANDROID_ABI={}", target_abi))
+            .configure_arg("-DANDROID_PLATFORM=android-33")
+            .configure_arg(&format!(
+                "--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake",
+                android_home, ndk_version
+            ))
+            .configure_arg("-DTRACY_ENABLE=OFF")
+            .build_target("bb")
+            .build();
     }
     // MacOS and other platforms
     else {
         dst = Config::new("../cpp")
-        .generator("Ninja")
-        .configure_arg("-DCMAKE_BUILD_TYPE=Release")            
-        .configure_arg("-DTRACY_ENABLE=OFF")
-        .build_target("bb")
-        .build();
+            .generator("Ninja")
+            .configure_arg("-DCMAKE_BUILD_TYPE=Release")
+            .configure_arg("-DTRACY_ENABLE=OFF")
+            .build_target("bb")
+            .build();
     }
 
     // Add the library search path for Rust to find during linking.
     println!("cargo:rustc-link-search={}/build/lib", dst.display());
 
     // Add the library search path for libdeflate
-    println!("cargo:rustc-link-search={}/build/_deps/libdeflate-build", dst.display());
+    println!(
+        "cargo:rustc-link-search={}/build/_deps/libdeflate-build",
+        dst.display()
+    );
 
     // Link the `barretenberg` static library.
     println!("cargo:rustc-link-lib=static=barretenberg");
@@ -130,7 +150,13 @@ fn main() {
 
     // Copy the headers to the build directory.
     // Fix an issue where the headers are not included in the build.
-    Command::new("sh").args(&["copy-headers.sh", &format!("{}/build/include", dst.display())]).output().unwrap();
+    Command::new("sh")
+        .args(&[
+            "copy-headers.sh",
+            &format!("{}/build/include", dst.display()),
+        ])
+        .output()
+        .unwrap();
 
     let mut builder = bindgen::Builder::default();
 
@@ -180,15 +206,18 @@ fn main() {
             ]);
     } else {
         builder = builder
-        // Add the include path for headers.
-        .clang_args([
-            "-std=c++20",
-            "-xc++",
-            &format!("-I{}/build/include", dst.display()),
-            // Dependencies' include paths needs to be added manually.
-            &format!("-I{}/build/_deps/msgpack-c/src/msgpack-c/include", dst.display()),
-            //&format!("-I{}/build/_deps/libdeflate-src", dst.display()),
-        ]);
+            // Add the include path for headers.
+            .clang_args([
+                "-std=c++20",
+                "-xc++",
+                &format!("-I{}/build/include", dst.display()),
+                // Dependencies' include paths needs to be added manually.
+                &format!(
+                    "-I{}/build/_deps/msgpack-c/src/msgpack-c/include",
+                    dst.display()
+                ),
+                //&format!("-I{}/build/_deps/libdeflate-src", dst.display()),
+            ]);
     }
 
     let bindings = builder
@@ -232,7 +261,6 @@ fn main() {
         .allowlist_function("acir_serialize_verification_key_into_fields")
         .allowlist_function("acir_prove_ultra_honk")
         .allowlist_function("acir_prove_ultra_keccak_honk")
-<<<<<<< HEAD
         .allowlist_function("acir_prove_ultra_keccak_zk_honk")
         .allowlist_function("acir_prove_aztec_client")
         // TODO: enable the Starknet flavors once we enable the appropriate flag
@@ -245,10 +273,6 @@ fn main() {
         .allowlist_function("acir_verify_aztec_client")
         //.allowlist_function("acir_verify_ultra_starknet_honk")
         //.allowlist_function("acir_verify_ultra_starknet_zk_honk")
-=======
-        .allowlist_function("acir_verify_ultra_honk")
-        .allowlist_function("acir_verify_ultra_keccak_honk")
->>>>>>> a90b935abc (feat: add keccak prove/verify variants to bb_rs)
         .allowlist_function("acir_write_vk_ultra_honk")
         .allowlist_function("acir_write_vk_ultra_keccak_honk")
         .allowlist_function("acir_write_vk_ultra_keccak_zk_honk")
