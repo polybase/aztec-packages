@@ -38,6 +38,18 @@
   #else // MacOS has sys/random.h
     #include <sys/random.h>
   #endif
+#elif defined(__ANDROID__)
+  #include <fcntl.h>
+  #include <unistd.h>
+  #include <errno.h>
+
+  inline ssize_t android_getrandom(void* buf, size_t buflen) {
+      int fd = open("/dev/urandom", O_RDONLY);
+      if (fd < 0) return -1;
+      ssize_t result = read(fd, buf, buflen);
+      close(fd);
+      return result;
+  }
 #else
   #include <sys/random.h>
 #endif
@@ -92,6 +104,8 @@ template <size_t size_in_unsigned_ints> std::array<unsigned int, size_in_unsigne
             // loop
             ssize_t read_bytes =
                 getentropy(current_offset, BYTES_PER_GETENTROPY_READ) == -1 ? -1 : BYTES_PER_GETENTROPY_READ;
+#elif defined(__ANDROID__)
+    ssize_t read_bytes = android_getrandom(current_offset, bytes_left);
 #else
             // Sample from urandom on native
             auto read_bytes = getrandom(current_offset, bytes_left, 0);

@@ -26,15 +26,26 @@ fn main() {
     }
     // Android
     else if target_os == "android" {
+        // Detect Android ABI from TARGET triple
+        let target = env::var("TARGET").expect("Android TARGET not set");
+        let target_abi = match target.as_str() {
+            "aarch64-linux-android" => "arm64-v8a",
+            "armv7-linux-androideabi" => "armeabi-v7a",
+            "i686-linux-android" => "x86",
+            "x86_64-linux-android" => "x86_64",
+            _ => panic!("Unsupported Android target: {}", target),
+        };
+
         let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
         let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
 
         dst = Config::new("../cpp")
         .generator("Ninja")
         .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-        .configure_arg("-DANDROID_ABI=arm64-v8a")
+        .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
+        .configure_arg(&format!("-DANDROID_ABI={}", target_abi))
         .configure_arg("-DANDROID_PLATFORM=android-33")
-        .configure_arg(&format!("--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake", android_home, ndk_version))
+        .configure_arg(&format!( "--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake", android_home, ndk_version))
         .build_target("bb")
         .build();
     }
