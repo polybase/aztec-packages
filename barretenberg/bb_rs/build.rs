@@ -120,6 +120,8 @@ fn main() {
     else {
         dst = Config::new("../cpp")
             .generator("Ninja")
+            // TODO: remove these flags once aztec fixes the issue
+            .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=vla-cxx-extension -Wno-error=missing-template-arg-list-after-template-kw")
             .configure_arg("-DCMAKE_BUILD_TYPE=Release")
             .configure_arg("-DTRACY_ENABLE=OFF")
             .build_target("bb")
