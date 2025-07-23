@@ -1,5 +1,5 @@
 import { EthAddress, type Logger, type PXE, type Wallet } from '@aztec/aztec.js';
-import { CheatCodes } from '@aztec/aztec.js/testing';
+import { CheatCodes } from '@aztec/aztec/testing';
 import {
   type DeployL1ContractsReturnType,
   GovernanceProposerContract,
@@ -95,12 +95,12 @@ describe('e2e_gov_proposal', () => {
         );
       }
 
-      const votes = await governanceProposer.getProposalVotes(
+      const signals = await governanceProposer.getPayloadSignals(
         deployL1ContractsValues.l1ContractAddresses.rollupAddress.toString(),
         round + 1n,
         newGovernanceProposerAddress.toString(),
       );
-      expect(votes).toEqual(roundDuration);
+      expect(signals).toEqual(roundDuration);
     },
     1000 * 60 * 5,
   );
