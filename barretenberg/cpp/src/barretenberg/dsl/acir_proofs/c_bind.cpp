@@ -47,15 +47,9 @@ WASM_EXPORT void acir_prove_and_verify_ultra_honk(uint8_t const* acir_vec, uint8
 
     auto builder = acir_format::create_circuit<UltraCircuitBuilder>(program, metadata);
 
-<<<<<<< HEAD
-    auto proving_key = std::make_shared<DeciderProvingKey_<UltraZKFlavor>>(builder);
-    auto verification_key = std::make_shared<UltraZKFlavor::VerificationKey>(proving_key->proving_key);
-    UltraProver_<UltraZKFlavor> prover{ proving_key, verification_key };
-=======
     auto proving_key = std::make_shared<DeciderProvingKey_<UltraFlavor>>(builder);
     auto verification_key = std::make_shared<UltraFlavor::VerificationKey>(proving_key->get_precomputed());
     UltraProver prover{ proving_key, verification_key };
->>>>>>> c0f0277998dc314b20805ddaa53c18e0714aa3e2
     auto proof = prover.construct_proof();
 
     UltraVerifier verifier{ verification_key };
@@ -147,6 +141,14 @@ WASM_EXPORT void acir_prove_ultra_zk_honk(uint8_t const* acir_vec,
 
     auto proof = prover.construct_proof();
     *out = to_heap_buffer(to_buffer(proof));
+}
+
+WASM_EXPORT void acir_prove_ultra_honk(uint8_t const* acir_vec,
+                                       uint8_t const* witness_vec,
+                                       uint8_t const* vk_buf,
+                                       uint8_t** out)
+{
+    acir_prove_ultra_zk_honk(acir_vec, witness_vec, vk_buf, out);
 }
 
 WASM_EXPORT void acir_prove_ultra_keccak_honk(uint8_t const* acir_vec,
@@ -254,6 +256,11 @@ WASM_EXPORT void acir_verify_ultra_zk_honk(uint8_t const* proof_buf, uint8_t con
     Verifier verifier{ verification_key };
 
     *result = verifier.verify_proof(proof);
+}
+
+WASM_EXPORT void acir_verify_ultra_honk(uint8_t const* proof_buf, uint8_t const* vk_buf, bool* result)
+{
+    acir_verify_ultra_zk_honk(proof_buf, vk_buf, result);
 }
 
 WASM_EXPORT void acir_verify_ultra_keccak_honk(uint8_t const* proof_buf, uint8_t const* vk_buf, bool* result)
