@@ -1,6 +1,6 @@
 #include "../mem.hpp"
 
-#ifdef TRACY_MEMORY
+#ifdef TRACY_MEMORY_POLYBASE
 void* operator new(std::size_t count)
 {
     // NOLINTBEGIN(cppcoreguidelines-no-malloc)
