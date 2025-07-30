@@ -1,5 +1,5 @@
 [package]
-name = "bb_rs"
+name = "polybase_bb_rs"
 version = "1.0.0-nightly.20250723"
 edition = "2021"
 authors = ["Bartosz Nowak", "Théo Madzou"]
