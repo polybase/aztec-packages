@@ -77,7 +77,7 @@ fn main() {
     let dst;
     // iOS
     if target_os == "ios" {
-        dst = Config::new("../cpp")
+        dst = Config::new("cpp")
             .generator("Ninja")
             .configure_arg("-DCMAKE_BUILD_TYPE=Release")
             .configure_arg("-DPLATFORM=OS64")
@@ -102,7 +102,7 @@ fn main() {
         let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
         let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
 
-        dst = Config::new("../cpp")
+        dst = Config::new("cpp")
             .generator("Ninja")
             .configure_arg("-DCMAKE_BUILD_TYPE=Release")
             .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
@@ -118,7 +118,7 @@ fn main() {
     }
     // MacOS and other platforms
     else {
-        dst = Config::new("../cpp")
+        dst = Config::new("cpp")
             .generator("Ninja")
             .configure_arg("-DCMAKE_BUILD_TYPE=Release")
             .configure_arg("-DTRACY_ENABLE=OFF")
