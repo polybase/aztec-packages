@@ -78,6 +78,7 @@ fn main() {
 
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let cpp_dir = manifest_dir.join("./cpp");
+    let ios_toolchain = manifest_dir.join("ios.toolchain.cmake");
 
     let home = env::var("HOME").ok();
     let cache_base = if target_os == "windows" {
@@ -124,7 +125,7 @@ fn main() {
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DPLATFORM=OS64")
                 .configure_arg("-DDEPLOYMENT_TARGET=15.0")
-                .configure_arg("--toolchain=../bb_rs/ios.toolchain.cmake")
+                .configure_arg(format!("--toolchain={}", ios_toolchain.display()))
                 .configure_arg("-DTRACY_ENABLE=OFF")
                 .out_dir(&cache_dir)
                 .build_target("bb")
