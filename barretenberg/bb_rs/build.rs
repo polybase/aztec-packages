@@ -76,6 +76,9 @@ fn main() {
 
     let target = env::var("TARGET").expect("TARGET not set");
 
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let cpp_dir = manifest_dir.join("./cpp");
+
     let home = env::var("HOME").ok();
     let cache_base = if target_os == "windows" {
         let local_app_data = env::var("LOCALAPPDATA").expect("LOCALAPPDATA not set");
@@ -116,7 +119,7 @@ fn main() {
         // Build the C++ code using CMake and get the build directory path.
         // iOS
         if target_os == "ios" {
-            dst = Config::new("./cpp")
+            dst = Config::new(cpp_dir)
                 .generator("Ninja")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DPLATFORM=OS64")
@@ -141,7 +144,7 @@ fn main() {
             let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
             let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
 
-            dst = Config::new("./cpp")
+            dst = Config::new(cpp_dir)
                 .generator("Ninja")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
@@ -158,7 +161,7 @@ fn main() {
         }
         // MacOS and other platforms
         else {
-            dst = Config::new("./cpp")
+            dst = Config::new(cpp_dir)
                 .generator("Ninja")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DTRACY_ENABLE=OFF")
