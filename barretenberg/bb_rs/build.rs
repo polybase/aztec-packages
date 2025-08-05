@@ -1,5 +1,6 @@
 use cmake::Config;
 use std::env;
+use std::fs::{self, create_dir_all};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -73,57 +74,98 @@ fn main() {
     // of the target_os environment variable to determine the target OS.
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
 
-    // Build the C++ code using CMake and get the build directory path.
+    let target = env::var("TARGET").expect("TARGET not set");
+
+    let home = env::var("HOME").ok();
+    let cache_base = if target_os == "windows" {
+        let local_app_data = env::var("LOCALAPPDATA").expect("LOCALAPPDATA not set");
+        PathBuf::from(local_app_data)
+            .join("barretenberg")
+            .join("cache")
+    } else if target_os == "macos" || target_os == "ios" {
+        PathBuf::from(home.expect("HOME not set"))
+            .join(".cargo")
+            .join("polybase")
+            .join("barretenberg")
+    } else {
+        PathBuf::from(home.expect("HOME not set"))
+            .join(".cargo")
+            .join("polybase")
+            .join("barretenberg")
+    };
+    let cache_dir = cache_base.join(&target);
+
+    let lib_filename = if target_os == "windows" {
+        "barretenberg.lib".to_string()
+    } else {
+        "libbarretenberg.a".to_string()
+    };
+    let lib_path = cache_dir.join("build").join("lib").join(&lib_filename);
+
     let dst;
-    // iOS
-    if target_os == "ios" {
-        dst = Config::new("cpp")
-            .generator("Ninja")
-            .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-            .configure_arg("-DPLATFORM=OS64")
-            .configure_arg("-DDEPLOYMENT_TARGET=15.0")
-            .configure_arg("--toolchain=../bb_rs/ios.toolchain.cmake")
-            .configure_arg("-DTRACY_ENABLE=OFF")
-            .build_target("bb")
-            .build();
-    }
-    // Android
-    else if target_os == "android" {
-        // Detect Android ABI from TARGET triple
-        let target = env::var("TARGET").expect("Android TARGET not set");
-        let target_abi = match target.as_str() {
-            "aarch64-linux-android" => "arm64-v8a",
-            "armv7-linux-androideabi" => "armeabi-v7a",
-            "i686-linux-android" => "x86",
-            "x86_64-linux-android" => "x86_64",
-            _ => panic!("Unsupported Android target: {}", target),
-        };
+    let is_cached = lib_path.exists();
+    if is_cached {
+        println!(
+            "cargo:warning=Using cached build at {}",
+            cache_dir.display()
+        );
+        dst = cache_dir;
+    } else {
+        println!("cargo:warning=No cache found, building from source");
+        create_dir_all(&cache_dir).unwrap();
+        // Build the C++ code using CMake and get the build directory path.
+        // iOS
+        if target_os == "ios" {
+            dst = Config::new("./cpp")
+                .generator("Ninja")
+                .configure_arg("-DCMAKE_BUILD_TYPE=Release")
+                .configure_arg("-DPLATFORM=OS64")
+                .configure_arg("-DDEPLOYMENT_TARGET=15.0")
+                .configure_arg("--toolchain=../bb_rs/ios.toolchain.cmake")
+                .configure_arg("-DTRACY_ENABLE=OFF")
+                .out_dir(&cache_dir)
+                .build_target("bb")
+                .build();
+        }
+        // Android
+        else if target_os == "android" {
+            // Detect Android ABI from TARGET triple
+            let target_abi = match target.as_str() {
+                "aarch64-linux-android" => "arm64-v8a",
+                "armv7-linux-androideabi" => "armeabi-v7a",
+                "i686-linux-android" => "x86",
+                "x86_64-linux-android" => "x86_64",
+                _ => panic!("Unsupported Android target: {}", target),
+            };
 
-        let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
-        let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
+            let android_home = option_env!("ANDROID_HOME").expect("ANDROID_HOME not set");
+            let ndk_version = option_env!("NDK_VERSION").expect("NDK_VERSION not set");
 
-        dst = Config::new("cpp")
-            .generator("Ninja")
-            .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-            .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
-            .configure_arg(&format!("-DANDROID_ABI={}", target_abi))
-            .configure_arg("-DANDROID_PLATFORM=android-33")
-            .configure_arg(&format!(
-                "--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake",
-                android_home, ndk_version
-            ))
-            .configure_arg("-DTRACY_ENABLE=OFF")
-            .build_target("bb")
-            .build();
-    }
-    // MacOS and other platforms
-    else {
-        dst = Config::new("cpp")
-            .generator("Ninja")
-            .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-            .configure_arg("-DTRACY_ENABLE=OFF")
-            .build_target("bb")
-            .build();
+            dst = Config::new("./cpp")
+                .generator("Ninja")
+                .configure_arg("-DCMAKE_BUILD_TYPE=Release")
+                .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
+                .configure_arg(&format!("-DANDROID_ABI={}", target_abi))
+                .configure_arg("-DANDROID_PLATFORM=android-33")
+                .configure_arg(&format!(
+                    "--toolchain={}/ndk/{}/build/cmake/android.toolchain.cmake",
+                    android_home, ndk_version
+                ))
+                .configure_arg("-DTRACY_ENABLE=OFF")
+                .out_dir(&cache_dir)
+                .build_target("bb")
+                .build();
+        }
+        // MacOS and other platforms
+        else {
+            dst = Config::new("./cpp")
+                .generator("Ninja")
+                .configure_arg("-DCMAKE_BUILD_TYPE=Release")
+                .configure_arg("-DTRACY_ENABLE=OFF")
+                .out_dir(&cache_dir)
+                .build_target("bb")
+                .build();
+        }
     }
 
     // Add the library search path for Rust to find during linking.
