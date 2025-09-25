@@ -34,8 +34,13 @@ find "$SRC_DIR" \( -name "*.hpp" -o -name "*.tcc" \) -type f | while read -r fil
     dest_dir="$(dirname "$dest_file")"
     mkdir -p "$dest_dir"
 
-    # Copy the file
-    cp "$file" "$dest_file"
+    # Skip copying if the destination already matches the source
+    if [ -f "$dest_file" ] && cmp -s "$file" "$dest_file"; then
+        continue
+    fi
+
+    # Copy while preserving timestamps and permissions so Cargo doesn't see spurious changes
+    cp -p "$file" "$dest_file"
     echo "Copied: $rel_path"
 done
 
