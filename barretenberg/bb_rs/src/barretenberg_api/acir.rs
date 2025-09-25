@@ -237,27 +237,13 @@ pub unsafe fn acir_serialize_proof_into_fields(
     proof_buf: &[u8],
     num_inner_public_inputs: u32,
 ) -> Vec<u8> {
-    let mut out_ptr = ptr::null_mut();
-    bindgen::acir_serialize_proof_into_fields(
-        acir_composer_ptr,
-        proof_buf.to_buffer().as_ptr(),
-        &num_inner_public_inputs.to_be(),
-        &mut out_ptr,
-    );
-    Buffer::from_ptr(out_ptr).unwrap().to_vec()
+    unimplemented!("this was not actually in lib")
 }
 
 pub unsafe fn acir_serialize_verification_key_into_fields(
     acir_composer_ptr: &mut Ptr,
 ) -> (Vec<u8>, [u8; 32]) {
-    let mut out_vkey = ptr::null_mut();
-    let mut out_key_hash = [0; 32];
-    bindgen::acir_serialize_verification_key_into_fields(
-        acir_composer_ptr,
-        &mut out_vkey,
-        out_key_hash.as_mut_ptr(),
-    );
-    (Buffer::from_ptr(out_vkey).unwrap().to_vec(), out_key_hash)
+    unimplemented!("this was not actually in lib")
 }
 
 pub unsafe fn acir_proof_as_fields_ultra_honk(proof_buf: &[u8]) -> Vec<String> {
