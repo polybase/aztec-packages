@@ -12,6 +12,19 @@
 #endif
 #include <vector>
 
+#ifndef BB_THREAD_LOCAL
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#define BB_THREAD_LOCAL
+#else
+#define BB_THREAD_LOCAL thread_local
+#endif
+#else
+#define BB_THREAD_LOCAL thread_local
+#endif
+#endif
+
 /**
  * Provides an abstraction that counts operations based on function names.
  * For efficiency, we spread out counts across threads.
@@ -71,7 +84,7 @@ using AggregateData = std::map<OperationKey, std::map<OperationKey, AggregateEnt
 // Contains all statically known op counts
 struct GlobalBenchStatsContainer {
   public:
-    static inline thread_local TimeStatsEntry* parent = nullptr;
+    static inline BB_THREAD_LOCAL TimeStatsEntry* parent = nullptr;
     ~GlobalBenchStatsContainer();
     std::mutex mutex;
     std::vector<TimeStatsEntry*> entries;
@@ -152,7 +165,7 @@ struct TimeStatsEntry {
 template <OperationLabel Op> struct ThreadBenchStats {
   public:
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    static inline thread_local TimeStatsEntry stats;
+    static inline BB_THREAD_LOCAL TimeStatsEntry stats;
 
     static void init_entry(TimeStatsEntry& entry);
     // returns null if use_bb_bench not enabled
