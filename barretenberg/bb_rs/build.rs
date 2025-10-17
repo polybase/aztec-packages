@@ -1,6 +1,6 @@
 use cmake::Config;
 use std::env;
-use std::fs::{self, create_dir_all};
+use std::fs::create_dir_all;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -84,18 +84,18 @@ fn main() {
     let cache_base = if target_os == "windows" {
         let local_app_data = env::var("LOCALAPPDATA").expect("LOCALAPPDATA not set");
         PathBuf::from(local_app_data)
-            .join("barretenberg")
+            .join("barretenberg-v2.0.3")
             .join("cache")
     } else if target_os == "macos" || target_os == "ios" {
         PathBuf::from(home.expect("HOME not set"))
             .join(".cargo")
             .join("polybase")
-            .join("barretenberg")
+            .join("barretenberg-v2.0.3")
     } else {
         PathBuf::from(home.expect("HOME not set"))
             .join(".cargo")
             .join("polybase")
-            .join("barretenberg")
+            .join("barretenberg-v2.0.3")
     };
     let cache_dir = cache_base.join(&target);
 
