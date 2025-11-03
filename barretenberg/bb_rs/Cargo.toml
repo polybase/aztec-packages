@@ -1,7 +1,7 @@
 [package]
 name = "polybase_bb_rs"
 description = "barretenberg bindings for Rust"
-version = "2.0.3"
+version = "3.0.0-manual.20251030"
 edition = "2021"
 authors = ["Bartosz Nowak", "Théo Madzou"]
 license-file = "README.md"
