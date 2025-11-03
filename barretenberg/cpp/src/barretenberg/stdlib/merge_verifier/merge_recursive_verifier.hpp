@@ -10,7 +10,7 @@
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/stdlib/primitives/pairing_points.hpp"
 #include "barretenberg/stdlib/proof/proof.hpp"
-#include "barretenberg/stdlib/transcript/transcript.hpp"
+#include "barretenberg/transcript/transcript.hpp"
 
 namespace bb::stdlib::recursion::goblin {
 template <typename CircuitBuilder> class MergeRecursiveVerifier_ {
@@ -20,7 +20,7 @@ template <typename CircuitBuilder> class MergeRecursiveVerifier_ {
     using Commitment = typename Curve::Element;
     using GroupElement = typename Curve::Element;
     using KZG = ::bb::KZG<Curve>;
-    using Transcript = bb::BaseTranscript<bb::stdlib::recursion::honk::StdlibTranscriptParams<CircuitBuilder>>;
+    using Transcript = StdlibTranscript<CircuitBuilder>;
     using PairingPoints = stdlib::recursion::PairingPoints<CircuitBuilder>;
 
     CircuitBuilder* builder;
@@ -35,7 +35,7 @@ template <typename CircuitBuilder> class MergeRecursiveVerifier_ {
     /**
      * Commitments used by the verifier to run the verification algorithm. They contain:
      *  - `t_commitments`: the subtable commitments data, containing the commitments to t_j read from the transcript by
-     *     the PG verifier with which the Merge verifier shares a transcript
+     *     the HN verifier with which the Merge verifier shares a transcript
      *  - `T_prev_commitments`: the commitments to the full op_queue table after the previous iteration of merge
      */
     struct InputCommitments {

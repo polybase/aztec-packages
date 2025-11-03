@@ -23,15 +23,6 @@ template <typename FF_> class MemoryRelationImpl {
         6  // RAM consistency sub-relation 3
     };
 
-    static constexpr std::array<size_t, 6> TOTAL_LENGTH_ADJUSTMENTS{
-        1, // memory sub-relation
-        1, // ROM consistency sub-relation 1
-        1, // ROM consistency sub-relation 2
-        1, // RAM consistency sub-relation 1
-        1, // RAM consistency sub-relation 2
-        1  // RAM consistency sub-relation 3
-    };
-
     /**
      * @brief Returns true if the contribution from all subrelations for the provided inputs is identically zero
      *
@@ -145,7 +136,7 @@ template <typename FF_> class MemoryRelationImpl {
          */
 
         // memory_record_check and partial_record_check_m have either deg 1 or 2 (the latter refers to the
-        // functional univariate degree when we use PG as opposed to sumcheck.)
+        // functional univariate degree when we use HN as opposed to sumcheck.)
         auto memory_record_check_m = w_3_m * eta_three_m;
         memory_record_check_m += w_2_m * eta_two_m;
         memory_record_check_m += w_1_m * eta_m;
