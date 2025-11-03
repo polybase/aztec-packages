@@ -183,6 +183,8 @@ fn main() {
 
     // Link the `barretenberg` static library.
     println!("cargo:rustc-link-lib=static=barretenberg");
+    // Link the vm2 stub to provide recursion constraint helpers referenced by dsl code.
+    println!("cargo:rustc-link-lib=static=vm2_stub");
 
     // Link the `libdeflate` static library.
     println!("cargo:rustc-link-lib=static=deflate");
