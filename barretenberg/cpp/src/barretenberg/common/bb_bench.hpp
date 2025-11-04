@@ -177,7 +177,7 @@ struct TimeStatsEntry {
 template <OperationLabel Op> struct ThreadBenchStats {
   public:
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    static inline thread_local std::shared_ptr<TimeStatsEntry> stats;
+    static inline BB_THREAD_LOCAL std::shared_ptr<TimeStatsEntry> stats;
 
     static void init_entry(TimeStatsEntry& entry);
     // returns null if use_bb_bench not enabled
