@@ -122,13 +122,14 @@ fn main() {
         if target_os == "ios" {
             dst = Config::new(cpp_dir)
                 .generator("Ninja")
+                .define("BB_RS", "ON")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DPLATFORM=OS64")
                 .configure_arg("-DDEPLOYMENT_TARGET=15.0")
                 .configure_arg(format!("--toolchain={}", ios_toolchain.display()))
                 .configure_arg("-DTRACY_ENABLE=OFF")
                 .out_dir(&cache_dir)
-                .build_target("bb")
+                .build_target("barretenberg")
                 .build();
         }
         // Android
@@ -147,6 +148,7 @@ fn main() {
 
             dst = Config::new(cpp_dir)
                 .generator("Ninja")
+                .define("BB_RS", "ON")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations")
                 .configure_arg(&format!("-DANDROID_ABI={}", target_abi))
@@ -157,17 +159,18 @@ fn main() {
                 ))
                 .configure_arg("-DTRACY_ENABLE=OFF")
                 .out_dir(&cache_dir)
-                .build_target("bb")
+                .build_target("barretenberg")
                 .build();
         }
         // MacOS and other platforms
         else {
             dst = Config::new(cpp_dir)
                 .generator("Ninja")
+                .define("BB_RS", "ON")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
                 .configure_arg("-DTRACY_ENABLE=OFF")
                 .out_dir(&cache_dir)
-                .build_target("bb")
+                .build_target("barretenberg")
                 .build();
         }
     }
@@ -187,7 +190,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=vm2_stub");
 
     // Link the `libdeflate` static library.
-    println!("cargo:rustc-link-lib=static=deflate");
+    // println!("cargo:rustc-link-lib=static=deflate");
 
     // Link the C++ standard library.
     if cfg!(target_os = "macos") || cfg!(target_os = "ios") {

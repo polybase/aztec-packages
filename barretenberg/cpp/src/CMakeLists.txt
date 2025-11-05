@@ -204,6 +204,14 @@ add_library(
     ${BARRETENBERG_TARGET_OBJECTS}
 )
 
+if(BB_RS)
+    target_link_libraries(
+        barretenberg
+        PRIVATE
+        vm2_stub
+    )
+endif()
+
 if(WASM)
     # When building this wasm "executable", we include the wasi module but exclude the env module.
     # That's because we expect this wasm to be run as a wasi "reactor" and for the host environment
