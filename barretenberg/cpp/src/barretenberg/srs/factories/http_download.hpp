@@ -4,7 +4,9 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-literal-operator"
+#if __has_warning("-Wdeprecated-literal-operator")
+  #pragma clang diagnostic ignored "-Wdeprecated-literal-operator"
+#endif
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
 #ifdef __GNUC__

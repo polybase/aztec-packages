@@ -1,1 +1,5 @@
-barretenberg_module(ipc)
+if(NOT ANDROID)
+  barretenberg_module(ipc)
+else()
+      message(STATUS "Skipping barretenberg/ipc for Android (no shm_open/shm_unlink)")
+endif()
