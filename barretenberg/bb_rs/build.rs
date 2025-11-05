@@ -84,18 +84,18 @@ fn main() {
     let cache_base = if target_os == "windows" {
         let local_app_data = env::var("LOCALAPPDATA").expect("LOCALAPPDATA not set");
         PathBuf::from(local_app_data)
-            .join("barretenberg-v3.0.0-manual.20251030")
+            .join("barretenberg-v3.0.0-manual.20251030-fix2")
             .join("cache")
     } else if target_os == "macos" || target_os == "ios" {
         PathBuf::from(home.expect("HOME not set"))
             .join(".cargo")
             .join("polybase")
-            .join("barretenberg-v3.0.0-manual.20251030")
+            .join("barretenberg-v3.0.0-manual.20251030-fix2")
     } else {
         PathBuf::from(home.expect("HOME not set"))
             .join(".cargo")
             .join("polybase")
-            .join("barretenberg-v3.0.0-manual.20251030")
+            .join("barretenberg-v3.0.0-manual.20251030-fix2")
     };
     let cache_dir = cache_base.join(&target);
 
