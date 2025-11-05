@@ -209,6 +209,7 @@ if(BB_RS)
         barretenberg
         PRIVATE
         vm2_stub
+        libdeflate::libdeflate_static
     )
 endif()
 

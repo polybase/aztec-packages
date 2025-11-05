@@ -190,7 +190,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=vm2_stub");
 
     // Link the `libdeflate` static library.
-    // println!("cargo:rustc-link-lib=static=deflate");
+    println!("cargo:rustc-link-lib=static=deflate");
 
     // Link the C++ standard library.
     if cfg!(target_os = "macos") || cfg!(target_os = "ios") {
