@@ -120,11 +120,18 @@ fn main() {
         // Build the C++ code using CMake and get the build directory path.
         // iOS
         if target_os == "ios" {
+            let ios_platform = match target.as_str() {
+                "aarch64-apple-ios" => "OS64",
+                "aarch64-apple-ios-sim" => "SIMULATORARM64",
+                "x86_64-apple-ios" => "SIMULATOR64",
+                _ => panic!("Unsupported iOS target: {}", target),
+            };
+
             dst = Config::new(cpp_dir)
                 .generator("Ninja")
                 .define("BB_RS", "ON")
                 .configure_arg("-DCMAKE_BUILD_TYPE=Release")
-                .configure_arg("-DPLATFORM=OS64")
+                .configure_arg(format!("-DPLATFORM={ios_platform}"))
                 .configure_arg("-DDEPLOYMENT_TARGET=15.0")
                 .configure_arg(format!("--toolchain={}", ios_toolchain.display()))
                 .configure_arg("-DTRACY_ENABLE=OFF")
@@ -230,6 +237,17 @@ fn main() {
             &format!("-I{}/ndk/{}/toolchains/llvm/prebuilt/{}/sysroot/usr/include/aarch64-linux-android", android_home, ndk_version, host_tag)
         ]);
     } else if target_os == "ios" {
+        let ios_sdk = if target == "aarch64-apple-ios" {
+            "iPhoneOS"
+        } else {
+            "iPhoneSimulator"
+        };
+        let ios_sdk_path = format!(
+            "/Applications/Xcode.app/Contents/Developer/Platforms/{ios_sdk}.platform/Developer/SDKs/{ios_sdk}.sdk"
+        );
+        let ios_cpp_include = format!("-I{ios_sdk_path}/usr/include/c++/v1");
+        let ios_include = format!("-I{ios_sdk_path}/usr/include");
+
         builder = builder
         // Add the include path for headers.
         .clang_args([
@@ -239,8 +257,8 @@ fn main() {
             // Dependencies' include paths needs to be added manually.
             &format!("-I{}/build/_deps/msgpack-c/src/msgpack-c/include", dst.display()),
             //&format!("-I{}/build/_deps/libdeflate-src", dst.display()),
-            "-I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/c++/v1",
-            "-I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include"
+            &ios_cpp_include,
+            &ios_include
         ]);
     } else if target_os == "macos" {
         builder = builder
